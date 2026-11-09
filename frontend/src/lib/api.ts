@@ -1,3 +1,14 @@
+const API_BASE = typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL
+  ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
+  : "";
+
+export function getFullApiUrl(endpoint: string): string {
+  if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+    return endpoint;
+  }
+  return `${API_BASE}${endpoint}`;
+}
+
 export interface ProcessResult {
   session_id: string;
   filename: string;
@@ -15,7 +26,7 @@ export async function mergePdfs(files: File[]): Promise<ProcessResult> {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
   
-  const res = await fetch("/api/pdf/merge", {
+  const res = await fetch(getFullApiUrl("/api/pdf/merge"), {
     method: "POST",
     body: formData,
   });
@@ -23,7 +34,9 @@ export async function mergePdfs(files: File[]): Promise<ProcessResult> {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to merge PDF files.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function splitPdf(file: File, mode: "all" | "ranges", ranges: string): Promise<ProcessResult> {
@@ -32,7 +45,7 @@ export async function splitPdf(file: File, mode: "all" | "ranges", ranges: strin
   formData.append("mode", mode);
   formData.append("ranges", ranges);
 
-  const res = await fetch("/api/pdf/split", {
+  const res = await fetch(getFullApiUrl("/api/pdf/split"), {
     method: "POST",
     body: formData,
   });
@@ -40,7 +53,9 @@ export async function splitPdf(file: File, mode: "all" | "ranges", ranges: strin
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to split PDF file.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function organizePdf(
@@ -51,7 +66,7 @@ export async function organizePdf(
   formData.append("file", file);
   formData.append("pages_json", JSON.stringify(pages));
 
-  const res = await fetch("/api/pdf/organize", {
+  const res = await fetch(getFullApiUrl("/api/pdf/organize"), {
     method: "POST",
     body: formData,
   });
@@ -59,7 +74,9 @@ export async function organizePdf(
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to organize PDF pages.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function compressPdf(file: File, level: "extreme" | "recommended" | "low"): Promise<ProcessResult> {
@@ -67,7 +84,7 @@ export async function compressPdf(file: File, level: "extreme" | "recommended" |
   formData.append("file", file);
   formData.append("level", level);
 
-  const res = await fetch("/api/pdf/compress", {
+  const res = await fetch(getFullApiUrl("/api/pdf/compress"), {
     method: "POST",
     body: formData,
   });
@@ -75,7 +92,9 @@ export async function compressPdf(file: File, level: "extreme" | "recommended" |
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to compress PDF.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function pdfToImages(file: File, format = "jpg", dpi = 150): Promise<ProcessResult> {
@@ -84,7 +103,7 @@ export async function pdfToImages(file: File, format = "jpg", dpi = 150): Promis
   formData.append("format", format);
   formData.append("dpi", dpi.toString());
 
-  const res = await fetch("/api/pdf/to-images", {
+  const res = await fetch(getFullApiUrl("/api/pdf/to-images"), {
     method: "POST",
     body: formData,
   });
@@ -92,7 +111,9 @@ export async function pdfToImages(file: File, format = "jpg", dpi = 150): Promis
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to convert PDF to images.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function imagesToPdf(
@@ -107,7 +128,7 @@ export async function imagesToPdf(
   formData.append("orientation", orientation);
   formData.append("margin", margin.toString());
 
-  const res = await fetch("/api/pdf/from-images", {
+  const res = await fetch(getFullApiUrl("/api/pdf/from-images"), {
     method: "POST",
     body: formData,
   });
@@ -115,14 +136,16 @@ export async function imagesToPdf(
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to convert images to PDF.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function pdfToWord(file: File): Promise<ProcessResult> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch("/api/pdf/to-word", {
+  const res = await fetch(getFullApiUrl("/api/pdf/to-word"), {
     method: "POST",
     body: formData,
   });
@@ -130,7 +153,9 @@ export async function pdfToWord(file: File): Promise<ProcessResult> {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to convert PDF to Word.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function rotatePdf(file: File, angle = 90): Promise<ProcessResult> {
@@ -138,7 +163,7 @@ export async function rotatePdf(file: File, angle = 90): Promise<ProcessResult> 
   formData.append("file", file);
   formData.append("angle", angle.toString());
 
-  const res = await fetch("/api/pdf/rotate", {
+  const res = await fetch(getFullApiUrl("/api/pdf/rotate"), {
     method: "POST",
     body: formData,
   });
@@ -146,7 +171,9 @@ export async function rotatePdf(file: File, angle = 90): Promise<ProcessResult> 
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to rotate PDF.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export interface WatermarkOptions {
@@ -168,7 +195,7 @@ export async function watermarkPdf(file: File, opts: WatermarkOptions): Promise<
   formData.append("rotation", opts.rotation.toString());
   formData.append("color", opts.color);
 
-  const res = await fetch("/api/pdf/watermark", {
+  const res = await fetch(getFullApiUrl("/api/pdf/watermark"), {
     method: "POST",
     body: formData,
   });
@@ -176,7 +203,9 @@ export async function watermarkPdf(file: File, opts: WatermarkOptions): Promise<
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to watermark PDF.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export interface PageNumberOptions {
@@ -194,7 +223,7 @@ export async function pageNumbersPdf(file: File, opts: PageNumberOptions): Promi
   formData.append("start_page", opts.startPage.toString());
   formData.append("margin", opts.margin.toString());
 
-  const res = await fetch("/api/pdf/page-numbers", {
+  const res = await fetch(getFullApiUrl("/api/pdf/page-numbers"), {
     method: "POST",
     body: formData,
   });
@@ -202,7 +231,9 @@ export async function pageNumbersPdf(file: File, opts: PageNumberOptions): Promi
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to add page numbers.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function protectPdf(file: File, password: string): Promise<ProcessResult> {
@@ -210,7 +241,7 @@ export async function protectPdf(file: File, password: string): Promise<ProcessR
   formData.append("file", file);
   formData.append("password", password);
 
-  const res = await fetch("/api/pdf/protect", {
+  const res = await fetch(getFullApiUrl("/api/pdf/protect"), {
     method: "POST",
     body: formData,
   });
@@ -218,7 +249,9 @@ export async function protectPdf(file: File, password: string): Promise<ProcessR
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to protect PDF.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function unlockPdf(file: File, password: string): Promise<ProcessResult> {
@@ -226,7 +259,7 @@ export async function unlockPdf(file: File, password: string): Promise<ProcessRe
   formData.append("file", file);
   formData.append("password", password);
 
-  const res = await fetch("/api/pdf/unlock", {
+  const res = await fetch(getFullApiUrl("/api/pdf/unlock"), {
     method: "POST",
     body: formData,
   });
@@ -234,9 +267,11 @@ export async function unlockPdf(file: File, password: string): Promise<ProcessRe
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to unlock PDF. Please check your password.");
   }
-  return res.json();
+  const data = await res.json();
+  data.download_url = getFullApiUrl(data.download_url);
+  return data;
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
-  await fetch(`/api/session/${sessionId}`, { method: "DELETE" }).catch(() => {});
+  await fetch(getFullApiUrl(`/api/session/${sessionId}`), { method: "DELETE" }).catch(() => {});
 }
